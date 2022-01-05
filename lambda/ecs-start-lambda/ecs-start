@@ -1,0 +1,47 @@
+const AWS = require('aws-sdk');
+const ecs = new AWS.ECS();
+//Update Front-End Count
+exports.handler_front_end = async (event) => {
+    var service = process.env.app_service;
+    var cluster = process.env.cluster;
+    const params = {
+        service: service,
+        cluster: cluster,
+        desiredCount: 1
+    };
+    return ecs.updateService(params).promise()
+        .then(success => {
+            console.log('increased '+service+ ' task');
+            return 'increased '+service+ ' task';
+        })
+        .catch(error => {
+            console.log('unable to ' +'increase '+service+ ' task ' + error.stack);
+            return error.stack;
+        });
+        
+};
+//Update Postgres Count
+exports.handler_postgres = async (event) => {
+    var service = process.env.db_service;
+    var cluster = process.env.cluster;
+    const params = {
+        service: service,
+        cluster: cluster,
+        desiredCount: 1
+    };
+    return ecs.updateService(params).promise()
+        .then(success => {
+            console.log('increased '+service+ ' task');
+            return 'increased '+service+ ' task';
+        })
+        .catch(error => {
+            console.log('unable to '+ 'increase '+service+ ' task ' + error.stack);
+            return error.stack;
+        });
+        
+};
+
+exports.handler = async (event) => {
+     await exports.handler_front_end();
+     await exports.handler_postgres();
+};

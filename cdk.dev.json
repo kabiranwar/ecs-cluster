@@ -20,7 +20,7 @@
       "ScoutapiContainername": "scout-api",
       "ScoutdbContainername": "scout-db",
       "ProjectName": "scout",
-      "ProjectEnvironment": "prod",
+      "ProjectEnvironment": "dev",
       "Account_ID": "321325872726",
       "Ecssg_ID": "sg-07aae8f4494ef0ed6",
       "AppService": "scout-dev-ecs-service",
@@ -32,6 +32,8 @@
       "SGID": "sg-074de470add30d74a",
       "ScoutAppImage":"arn:aws:ecr:us-east-1:321325872726:repository/ecr-simplehttp",
       "ScoutDbImage":"arn:aws:ecr:us-east-1:321325872726:repository/ecr-metalapp"
+      
+
       
     }
   }

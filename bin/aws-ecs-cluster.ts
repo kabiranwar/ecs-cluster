@@ -1,21 +1,87 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { AwsEcsClusterStack } from '../lib/aws-ecs-cluster-stack';
+import { ScoutFrontEnd } from '../lib/aws-ecs-frontend';
+import { ScoutDBStack } from '../lib/scout-db';
+import { AwsEcsStartStopLambdaStack } from '../lib/aws-lambda-start-stop-ecs';
+import { ScoutConfigRules } from '../lib/scout-config-rules'
+import { Stack, Tags } from '@aws-cdk/core';
+import { Budget } from '../lib/budget';
 
 const app = new cdk.App();
-new AwsEcsClusterStack(app, 'AwsEcsClusterStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+const scoutFrontEndStack = new Stack(app, 'scoutFrontEndStack');
+Tags.of(scoutFrontEndStack).add('env', 'dev');
+//const envUS = { account: '321325872726', region: 'us-east-1' };
+//const envScout = { account: '295892210512', region: 'us-gov-east-1' };
+const myaws = { account: '321325872726', region: 'us-east-1' };
+new ScoutFrontEnd(app, 'Scout-A-ECS-APP-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
+new ScoutDBStack(app, 'Scout-B-ECS-DB-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
+new ScoutConfigRules(app, 'config-rules', { env: myaws, tags: { 'project': 'app-scout' }, });
+new Budget(app, 'My-Budget', { env: myaws, tags: { 'project': 'app-scout' }, });
+new AwsEcsStartStopLambdaStack(app, 'ECS-Start-Stop-Lambda-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+//new ScoutConfigRules(app, 'config-rules', { env: envScout });
+// new ScoutFrontEnd(app, 'Scout-A-ECS-APP-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// new ScoutDBStack(app, 'Scout-B-ECS-DB-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
+// new AwsEcsStartStopLambdaStack(app, 'ECS-Start-Stop-Lambda-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
+// new ScoutConfigRules(app, 'config-rules', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
+
+//const app = new cdk.App();
+
+//new ScoutDBStack(app, 'Scout-B-ECS-DB-stack', { env: envUS });
+//new appstack(app, 'app-stack', { env: envUS });
+
+//new AwsEcsClusterStack(app, 'AwsEcsClusterStack', {
+
+//new AwsEcsClusterStack(app, 'AwsEcsClusterStack', { env: envUS });
+//  new ScoutFrontEnd(app, 'Scout-A-ECS-APP-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+//  });
+
+ // new AwsEcsClusterStack(app, 'AwsEcsClusterStack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
+//new AwsEcsClusterStack(app, 'AwsEcsClusterStack', { env: envUS });
+// new AwsEcsBackEndClusterStack(app, 'Scout-B-ECS-API-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
+//new AwsEcsClusterStack(app, 'AwsEcsClusterStack', { env: envUS });
+// new ScoutDBStack(app, 'Scout-C-ECS-DB-stack', {
+//   env: {
+//     account: process.env.CDK_DEFAULT_ACCOUNT,
+//     region: process.env.CDK_DEFAULT_REGION
+//   }
+// });
+
+
