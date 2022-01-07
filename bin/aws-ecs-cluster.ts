@@ -14,4 +14,5 @@ Tags.of(scoutFrontEndStack).add('env', 'dev');
 const myaws = { account: '321325872726', region: 'us-east-1' };
 new ScoutFrontEnd(app, 'Scout-A-ECS-APP-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
 new ScoutDBStack(app, 'Scout-B-ECS-DB-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
+//new ScoutDBStack(app, 'Scout-B-ECS-DB-stack', { env: myaws, tags: { 'project': 'app-scout' }, });
 
