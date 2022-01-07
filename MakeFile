@@ -1,0 +1,35 @@
+PROFILE = awssbx
+ENV = sbx
+.DEFAULT_GOAL := explain
+.PHONY: explain
+explain:
+	###
+	#
+	# Welcome to the AWS Infrastructure Templates repo
+	#
+	##
+
+.PHONY: install
+install: ## Install all the dependencies we need
+	npm install
+
+.PHONY: prepare-environment
+prepare-environment: check-environment
+ifneq (,$(wildcard cdk.${ENV}.json))
+	cp cdk.${ENV}.json cdk.json
+else
+	@echo "[Error] cdk.${ENV}.json does not exist"
+	@exit 1;
+endif
+
+
+.PHONY: check-environment
+check-environment:
+ifeq ($(ENV),)
+	@echo "[Error] Please specify a ENV"
+	@exit 1;
+endif
+
+.PHONY: deploy-stack 
+deploy-stack:
+	npx cdk deploy --profile $(PROFILE)
