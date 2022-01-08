@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 
-##
-# Get settings from CDK JSON file
-##
-echo "TARGET_ENVIRONMENT :" ${1}
-make prepare-environment ENV="${1}"
-
-
 
 ##
-# Run the deployment stack
+# Run the deployment app stack
 ##
-make deploy-stack
+if [ "${2}" = "app" ]; then
+    echo "TARGET_ENVIRONMENT :" ${1}
+    echo "DEPLOY_STACK :" ${2}
+    make deploy-app-stack ENV="${1}"
+fi
+
+
+##
+# Run the deployment app stack
+##
+
+if [ "${2}" = "db" ]; then
+    echo "TARGET_ENVIRONMENT :" ${1}
+    echo "DEPLOY_STACK :" ${2}
+    make deploy-db-stack ENV="${1}"
+fi

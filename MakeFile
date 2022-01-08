@@ -15,13 +15,12 @@ install: ## Install all the dependencies we need
 
 .PHONY: prepare-environment
 prepare-environment: check-environment
-ifneq (,$(wildcard cdk.${ENV}.json))
-	cp cdk.${ENV}.json cdk.json
-else
+ifeq ($(wildcard cdk.${ENV}.json),)
 	@echo "[Error] cdk.${ENV}.json does not exist"
 	@exit 1;
+else
+	cp cdk.${ENV}.json cdk.json
 endif
-
 
 .PHONY: check-environment
 check-environment:
@@ -33,3 +32,12 @@ endif
 .PHONY: deploy-stack 
 deploy-stack:
 	npx cdk deploy --profile $(PROFILE)
+
+
+.PHONY: deploy-app-stack 
+deploy-app-stack: prepare-environment
+	npx cdk deploy Scout-A-ECS-APP-stack --profile $(PROFILE)
+
+.PHONY: deploy-db-stack 
+deploy-db-stack: prepare-environment
+	npx cdk deploy Scout-B-ECS-DB-stack --profile $(PROFILE)

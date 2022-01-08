@@ -30,8 +30,10 @@ make install
 
 ## Deployment
 
-- Run the following shell script command with environment to create the stack.
+- Run the following shell script command with environment and application to create the app stack.
+  - First parameter - Enviroment ( Ex: sbx,dev,uat,prod)
+  - Second parameter - Stack to be deployed ( Ex: app , db etc..,)
 
 ```bash
-  sh ./deploy.sh "dev" 
+  sh ./deploy.sh "dev" "app"
 ```
