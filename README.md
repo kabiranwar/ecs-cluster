@@ -37,3 +37,19 @@ make install
 ```bash
   sh ./deploy.sh "dev" "app"
 ```
+
+## Destroy a Stack
+
+Run the below command to destroy the stack
+
+```bash
+make destroy-stack
+```
+
+## Synthesis the cloudformation template
+
+Run the below command to emits the synthesized CloudFormation template
+
+```bash
+make run-synth
+```
