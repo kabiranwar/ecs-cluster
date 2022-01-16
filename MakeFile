@@ -52,3 +52,12 @@ destroy-stack:
 .PHONY: run-synth
 run-synth: 
 	cdk synth --profile ${PROFILE}
+
+.PHONY: test
+test: ## Test the application
+	npm run build && npm test
+
+
+.PHONY: snapshottestfix
+snapshottestfix: ## To commit to the new snapshot
+	npm run build && npm test -- -u

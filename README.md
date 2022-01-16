@@ -53,3 +53,19 @@ Run the below command to emits the synthesized CloudFormation template
 ```bash
 make run-synth
 ```
+
+## Test
+
+To run the unit and integration(snapshot) tests, please run:
+
+```bash
+make test
+```
+
+## SnapShot Test
+
+To commit to the new snapshot test fix and to test, please run:
+
+```bash
+make snapshottestfix
+```
