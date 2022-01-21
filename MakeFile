@@ -61,3 +61,8 @@ test: ## Test the application
 .PHONY: snapshottestfix
 snapshottestfix: ## To commit to the new snapshot
 	npm run build && npm test -- -u
+
+
+.PHONY: test-cov
+test-cov: ## Test the stack and produce the coverage
+	npm run build && npm run test-cov

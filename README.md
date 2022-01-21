@@ -69,3 +69,11 @@ To commit to the new snapshot test fix and to test, please run:
 ```bash
 make snapshottestfix
 ```
+
+## Test-Coverage
+
+To run the tests case, and to get code coverage:
+
+```bash
+make test-cov
+```
