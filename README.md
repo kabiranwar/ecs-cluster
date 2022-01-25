@@ -78,3 +78,5 @@ To run the tests case, and to get code coverage:
 ```bash
 make test-cov
 ```
+
+## test ci/cd pipeline
