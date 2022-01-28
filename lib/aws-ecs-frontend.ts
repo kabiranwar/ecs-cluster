@@ -8,7 +8,9 @@ import * as ssl_cert from '@aws-cdk/aws-certificatemanager';
 import * as parameters from "../cdk.json"
 import * as ssm from '@aws-cdk/aws-ssm';
 import { LogGroup, LogStream } from "@aws-cdk/aws-logs";
-import * as ecr from "@aws-cdk/aws-ecr"
+import * as ecr from "@aws-cdk/aws-ecr";
+import { RemovalPolicy } from '@aws-cdk/core';
+
 
 export class ScoutFrontEnd extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -199,7 +201,9 @@ export class ScoutFrontEnd extends cdk.Stack {
 
     //Defining CloudWatch Log Group.
     const loggroup = new LogGroup(this, 'LogGroupTest', {
-      logGroupName: `/ecs/scout-app-ecs-task-def`
+      logGroupName: `/ecs/scout-app-ecs-task-def`,
+      removalPolicy: RemovalPolicy.DESTROY
+
     });
     //cdk.Tags.of(loggroup).add('proj', 'app-scout');
     // Get latest version or specified version of plain string attribute
