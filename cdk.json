@@ -13,6 +13,18 @@
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
     "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
     "@aws-cdk/aws-lambda:recognizeVersionProps": true,
+    "appName":"cdk-cicd",
+    "mailId":[
+      "anwarkabir2011@gmail.com"
+    ],
+    "accountNumber":"321325872726",
+    "region":"us-east-1",
+    "repoToken":"githubtoken",
+    "owner":"kabiranwar",
+    "repo":"ecs-cluster",
+    "branch":"main",
+
+
     "config": {
       "clustername": "ecs-cluster",
       "servicename": "ecs-service",
