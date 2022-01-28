@@ -15,6 +15,6 @@ phases:
       - echo Build CDK project...
       - npm install
       - npm run build
-      - npx cdk bootstrap aws://<your aws account number>/us-east-1
+      - npx cdk bootstrap aws://321325872726/us-east-1
       - cdk deploy --require-approval never
       - echo Deploy completed...
