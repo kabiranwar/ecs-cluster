@@ -16,5 +16,5 @@ phases:
       - npm install
       - npm run build
       - npx cdk bootstrap aws://$ACCOUNT_ID/$ACCOUNT_REGION
-      - cdk deploy --require-approval never
+      - cdk deploy Scout-APP-stack --require-approval never
       - echo Deploy completed...
