@@ -116,13 +116,13 @@ Object {
   },
   "Resources": Object {
     "LogGroupTest35764128": Object {
-      "DeletionPolicy": "Retain",
+      "DeletionPolicy": "Delete",
       "Properties": Object {
         "LogGroupName": "/ecs/scout-app-ecs-task-def",
         "RetentionInDays": 731,
       },
       "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
     "ScoutDevClusterA4270C77": Object {
       "Properties": Object {
