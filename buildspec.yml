@@ -16,5 +16,5 @@ phases:
       - npm install
       - npm run build
       - npx cdk bootstrap aws://321325872726/us-east-1
-      - cdk deploy Scout-APP-stack --require-approval never
+      - cdk destroy Scout-APP-stack --require-approval never
       - echo Deploy completed...
