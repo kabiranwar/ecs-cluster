@@ -1,0 +1,1109 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DDD servers, security groups, queues, and notification topics
+Parameters:
+  AdminRole:
+    Description: Role used to administer the environment via the console
+    Type: String
+    AllowedValues: [WLDEVELOPER, PDEVELOPER]
+  AgencyActivityCode:
+    Description: Accounting code used for resource naming
+    Type: String
+    Default: 15F080
+  CloudEnvironment:
+    Description: Environment from the account name (where you are logged in right now)
+    Type: String
+    AllowedValues:
+      [DEV, PP, PRD, PRD1, PRD2]
+  CostCode:
+    Description: Cost code for cost tracking
+    Type: String
+    Default: 2671
+  FEDSDomain:
+    Description: The domain used to host FEDS services like GitLab and Artifactory
+    Type: String
+    Default: rose.net
+    MinLength: 7
+  FEDSImportRoot:
+    Description: Root of the export names used by FEDS VPC stack from where top-level resources will be imported
+    Type: String
+  FEDSInfrastructureImportRoot:
+    Description: Root of the export names used by FEDS VPC stack from where network-infrastructure resources will be imported
+    Type: String
+  InstanceType:
+    Description: Server EC2 instance type
+    Type: String
+    Default: t3.xlarge
+    ConstraintDescription: must be a valid EC2 instance type.
+  MachineImageId:
+    Description: AMI to use
+    Type: AWS::EC2::Image::Id
+  NotificationEmailDestination:
+    Description: Email address of users to be notified on destination publishing application anomalies
+    Type: String
+  NotificationEmailsourves:
+    Description: Email address of users to be notified on source collection application anomalies
+    Type: String
+  ProjectEnvironment:
+    Description: Project Environment (not AWS Environment)
+    Type: String
+    AllowedValues: [dev, int, prd]
+  ProjectName:
+    Description: A human recognizable project name used in resource names (in lowercase)
+    Type: String
+    MinLength: 3
+    Default: DDD
+    AllowedPattern: ^[a-z]*$
+    ConstraintDescription: Must only contain lowercase letters.
+  ReleaseGroup:
+    Description: Namespace indication of a distinct environment instance to simultaneously support multiple release versions in the same AWS account.  Enter a letter a-d.
+    Type: String
+    AllowedValues: [a, b, c, d]
+    Default: "a"
+  SupportCidr:
+    Description: IP address /32 CIDR through which support personnel will connect
+    Type: String
+    AllowedPattern: ^([0-9]{1,3}\.){3}[0-9]{1,3}($|/(32))$
+    ConstraintDescription: Please enter a CIDR block (e.g. 111.111.111.111/32)
+  UserIdDestination:
+    Description: Username to be used for logging into the destination publishing server
+    Type: String
+    MinLength: 3
+    AllowedPattern: ^[a-z0-9]*
+    ConstraintDescription: Must only contain lowercase letters and numbers.
+  UserIdsourves:
+    Description: Username to be used for logging into the source collection server
+    Type: String
+    MinLength: 3
+    AllowedPattern: ^[a-z0-9]*
+    ConstraintDescription: Must only contain lowercase letters and numbers.
+  UserPasswordDestination:
+    Description: Password to be used with the user id for logging into the destination publishing server
+    Type: String
+    MinLength: 3
+    NoEcho: True
+  UserPasswordsourves:
+    Description: Password to be used with the user id for logging into the source collection server
+    Type: String
+    MinLength: 3
+    NoEcho: True
+Resources:
+  ############################## Common Application Resources ##############################
+  SQSMessageKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    Properties:
+      Description: Customer key for encrypting SQS messages
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Allow root full control
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:CancelKeyDeletion"
+              - "kms:CreateAlias"
+              - "kms:CreateGrant"
+              - "kms:CreateKey"
+              - "kms:Decrypt"
+              - "kms:DeleteAlias"
+              - "kms:DescribeKey"
+              - "kms:DisableKey"
+              - "kms:DisableKeyRotation"
+              - "kms:EnableKey"
+              - "kms:EnableKeyRotation"
+              - "kms:Encrypt"
+              - "kms:GenerateDataKey"
+              - "kms:GetKeyPolicy"
+              - "kms:GetKeyRotationStatus"
+              - "kms:GetparametersForImport"
+              - "kms:GetPublicKey"
+              - "kms:ImportKeyMaterial"
+              - "kms:ListAliases"
+              - "kms:ListGrants"
+              - "kms:ListKeyPolicies"
+              - "kms:ListKeys"
+              - "kms:ListResourceTags"
+              - "kms:ListRetirableGrants"
+              - "kms:PutKeyPolicy"
+              - "kms:ReEncryptFrom"
+              - "kms:ReEncryptTo"
+              - "kms:Retire"
+              - "kms:RevokeGrant"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:Sign"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+              - "kms:UpdateAlias"
+              - "kms:Verify"
+            Resource: "*"
+          - Sid: Enable administration
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AdminRole}"
+            Action:
+              - "kms:CancelKeyDeletion"
+              - "kms:CreateAlias"
+              - "kms:CreateGrant"
+              - "kms:CreateKey"
+              - "kms:DeleteAlias"
+              - "kms:DescribeKey"
+              - "kms:DisableKey"
+              - "kms:DisableKeyRotation"
+              - "kms:EnableKey"
+              - "kms:EnableKeyRotation"
+              - "kms:GetKeyPolicy"
+              - "kms:GetKeyRotationStatus"
+              - "kms:GetparametersForImport"
+              - "kms:GetPublicKey"
+              - "kms:ListAliases"
+              - "kms:ListGrants"
+              - "kms:ListKeyPolicies"
+              - "kms:ListKeys"
+              - "kms:ListResourceTags"
+              - "kms:ListRetirableGrants"
+              - "kms:PutKeyPolicy"
+              - "kms:RevokeGrant"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+              - "kms:UpdateAlias"
+            Resource: "*"
+          - Sid: Allow encryption via SQS
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:GenerateDataKey"
+              - "kms:GenerateDataKeyPair"
+              - "kms:ReEncryptFrom"
+              - "kms:ReEncryptTo"
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "kms:ViaService": !Sub "sqs.${AWS::Region}.${AWS::URLSuffix}"
+                "kms:CallerAccount": !Ref AWS::AccountId
+          - Sid: Allow access for Service Principals
+            Effect: Allow
+            Principal:
+              Service:
+                - !Sub "sns.amazonaws.com"
+                - !Sub "s3.amazonaws.com"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+              - "kms:GenerateDataKeyPair"
+            Resource: "*"
+      Tags:
+        - Key: AAACOMgmt
+          Value: !Sub "${CloudEnvironment}:${AgencyActivityCode}:AS:${ProjectEnvironment}"
+        - Key: Name
+          Value: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-SQSMessageKey"
+        - Key: backup
+          Value: "yes"
+        - Key: Component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:application-name
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:architecture-component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:cost-code
+          Value: !Sub "${CostCode}"
+        - Key: AAA:lifecycle-stage
+          Value: !Sub "${ProjectEnvironment}"
+        - Key: AAA:division
+          Value: itadd
+        - Key: EDAS:environment-name
+          Value: !Sub "${CloudEnvironment}"
+        - Key: EDAS:component-name
+          Value: !Sub "${ProjectName}"
+        - Key: EDAS:persistence
+          Value: !Sub "${CloudEnvironment}"
+  SQSMessageKeyAlias:
+    Type: AWS::KMS::Alias
+    DeletionPolicy: Delete
+    Properties:
+      AliasName: !Sub "alias/${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-SQSMessageKey"
+      TargetKeyId: !Ref SQSMessageKey
+  SSMParameterKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    Properties:
+      Description: Customer key for encrypting SSM parameters
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Allow root full control
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:CancelKeyDeletion"
+              - "kms:CreateAlias"
+              - "kms:PutKeyPolicy"
+            Resource: "*"
+          - Sid: Enable administration
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AdminRole}"
+            Action:
+              - "kms:CancelKeyDeletion"
+              - "kms:CreateAlias"
+              - "kms:CreateGrant"
+              - "kms:CreateKey"
+            Resource: "*"
+          - Sid: Allow encryption via SSM
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:GenerateDataKey"
+              - "kms:GenerateDataKeyPair"
+              - "kms:ReEncryptFrom"
+              - "kms:ReEncryptTo"
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "kms:ViaService": !Sub "ssm.${AWS::Region}.${AWS::URLSuffix}"
+                "kms:CallerAccount": !Ref AWS::AccountId
+      Tags:
+        - Key: AAACOMgmt
+          Value: !Sub "${CloudEnvironment}:${AgencyActivityCode}:AS:${ProjectEnvironment}"
+        - Key: Name
+          Value: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-SSMParameterKey"
+        - Key: backup
+          Value: "yes"
+        - Key: Component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:application-name
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:architecture-component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:cost-code
+          Value: !Sub "${CostCode}"
+        - Key: AAA:lifecycle-stage
+          Value: !Sub "${ProjectEnvironment}"
+        - Key: AAA:division
+          Value: itadd
+        - Key: EDAS:environment-name
+          Value: !Sub "${CloudEnvironment}"
+        - Key: EDAS:component-name
+          Value: !Sub "${ProjectName}"
+        - Key: EDAS:persistence
+          Value: !Sub "${CloudEnvironment}"
+  SSMParameterKeyAlias:
+    Type: AWS::KMS::Alias
+    DeletionPolicy: Delete
+    Properties:
+      AliasName: !Sub "alias/${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-SSMParameterKey"
+      TargetKeyId: !Ref SSMParameterKey
+  ApplicationRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub "lambda.amazonaws.com"
+                - !Sub "ec2.${AWS::URLSuffix}"
+            Action:
+              - "sts:AssumeRole"
+      Description: DDD role for application tier
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      PermissionsBoundary: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/AAAPermissionsBoundary"
+      Policies:
+        - PolicyName: "AutoScaling"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "autoscaling:DescribeAutoScalingInstances"
+                Resource:
+                  - "*"
+        - PolicyName: "CloudFormation"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:DescribeStackResources"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:ListStackResources"
+                Resource:
+                  - "*"
+        - PolicyName: "CloudWatch-Logs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+        - PolicyName: "DynamoDB"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:ListTables"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                Resource:
+                  - "*"
+        - PolicyName: "EC2"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateTags"
+                  - "ec2:DescribeInstances"
+                  - "ec2:DescribeInstanceStatus"
+                  - "ec2:StartInstances"
+                  - "ec2:StopInstances"
+                  - "ec2messages:GetMessages"
+                Resource:
+                  - "*"
+        - PolicyName: "IAM"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:ListAccountAliases"
+                Resource:
+                  - "*"
+        - PolicyName: "KMS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:DescribeKey"
+                  - "kms:GenerateDataKey"
+                  - "kms:GenerateDataKeyPair"
+                  - "kms:ReEncryptFrom"
+                  - "kms:ReEncryptTo"
+                Resource:
+                  - "*"
+        - PolicyName: "S3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:AbortMultipartUpload"
+                  - "s3:DeleteObject"
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                  - "s3:PutObject"
+                Resource:
+                  - "*"
+        - PolicyName: "SQS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ChangeMessageVisibility"
+                  - "sqs:DeleteMessage"
+                  - "sqs:DeleteMessageBatch"
+                  - "sqs:GetQueueAttributes"
+                  - "sqs:GetQueueUrl"
+                  - "sqs:ListQueues"
+                  - "sqs:ReceiveMessage"
+                  - "sqs:SendMessage"
+                  - "sqs:SendMessageBatch"
+                Resource:
+                  - "*"
+        - PolicyName: "SSMParameterStore"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:AddTagsToResource"
+                  - "ssm:DescribeParameters"
+                  - "ssm:GetParameter"
+                  - "ssm:GetParameters"
+                  - "ssm:PutParameter"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:ssm:*:${AWS::AccountId}:parameter/*"
+        - PolicyName: "SSMSessionManager"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:ListAssociations"
+                  - "ssm:ListInstanceAssociations"
+                  - "ssm:StartSession"
+                  - "ssm:TerminateSession"
+                  - "ssm:UpdateInstanceInformation"
+                  - "ssmmessages:CreateControlChannel"
+                  - "ssmmessages:CreateDataChannel"
+                  - "ssmmessages:OpenControlChannel"
+                  - "ssmmessages:OpenDataChannel"
+                Resource:
+                  - "*"
+      RoleName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-application-iam-role"
+      Tags:
+        - Key: Component
+          Value: !Sub "${ProjectName}"
+        - Key: EDAS:component-name
+          Value: !Sub "${ProjectName}"
+        - Key: EDAS:environment-name
+          Value: !Sub "${CloudEnvironment}"
+        - Key: EDAS:persistence
+          Value: !Sub "${CloudEnvironment}"
+        - Key: AAA:application-name
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:architecture-component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:cost-code
+          Value: !Sub "${CostCode}"
+        - Key: AAA:division
+          Value: itadd
+        - Key: AAA:lifecycle-stage
+          Value: !Sub "${ProjectEnvironment}"
+        - Key: AAACOMgmt
+          Value: !Sub "${CloudEnvironment}:${AgencyActivityCode}:AS:${ProjectEnvironment}"
+        - Key: Name
+          Value: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-application-iam-role"
+        - Key: SSMSessionRunAs
+          Value: "centos"
+  ApplicationInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DeletionPolicy: Delete
+    Properties:
+      InstanceProfileName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-application-instance-profile"
+      Roles:
+        - !Ref ApplicationRole
+  ApplicationSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    DeletionPolicy: Delete
+    Properties:
+      GroupDescription: Security Group for application tier
+      GroupName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-application-sg"
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SupportCidr
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp:
+            Fn::ImportValue: !Sub "${FEDSImportRoot}-VpcCidrBlock"
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: !Ref SupportCidr
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp:
+            Fn::ImportValue: !Sub "${FEDSImportRoot}-VpcCidrBlock"
+      Tags:
+        - Key: AAACOMgmt
+          Value: !Sub "${CloudEnvironment}:${AgencyActivityCode}:AS:${ProjectEnvironment}"
+        - Key: Name
+          Value: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-application-sg"
+        - Key: backup
+          Value: "yes"
+        - Key: Component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:application-name
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:architecture-component
+          Value: !Sub "${ProjectName}"
+        - Key: AAA:cost-code
+          Value: !Sub "${CostCode}"
+        - Key: AAA:lifecycle-stage
+          Value: !Sub "${ProjectEnvironment}"
+        - Key: AAA:division
+          Value: itadd
+        - Key: EDAS:environment-name
+          Value: !Sub "${CloudEnvironment}"
+        - Key: EDAS:component-name
+          Value: !Sub "${ProjectName}"
+        - Key: EDAS:persistence
+          Value: !Sub "${CloudEnvironment}"
+      VpcId:
+        Fn::ImportValue: !Sub "${FEDSImportRoot}-VPCID"
+  ############################## Source Collection Resources ##############################
+  SNSTopicsourvesValidation:
+    Type: AWS::SNS::Topic
+    DeletionPolicy: Delete
+    Properties:
+      DisplayName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-validation-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmailsourves
+          Protocol: email
+        - Endpoint: !GetAtt sourvesValidationQueue.Arn
+          Protocol: sqs
+      TopicName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-validation-topic"
+  SNSTopicPolicysourvesValidation:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicPolicysourvesValidation
+        Version: "2012-10-17"
+        Statement:
+          Action:
+            - SNS:GetTopicAttributes
+            - SNS:SetTopicAttributes
+            - SNS:AddPermission
+            - SNS:RemovePermission
+            - SNS:DeleteTopic
+            - SNS:Subscribe
+            - SNS:ListSubscriptionsByTopic
+            - SNS:Publish
+            - SNS:Receive
+          Effect: Allow
+          Principal:
+            AWS: "*"
+          Resource: !Ref SNSTopicsourvesValidation
+          Condition:
+            ArnLike:
+              AWS:SourceArn:
+                Fn::ImportValue: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesBucketArn"
+      Topics:
+        - !Ref SNSTopicsourvesValidation
+  SNSTopicsourvesDLQAlert:
+    Type: AWS::SNS::Topic
+    DeletionPolicy: Delete
+    Properties:
+      DisplayName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-dlq-alert-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmailsourves
+          Protocol: email
+      TopicName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-dlq-alert-topic"
+  SNSTopicPolicysourvesDLQAlert:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicPolicysourvesDLQAlert
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Allow_Access
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Resource: !Ref SNSTopicsourvesDLQAlert
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref "AWS::AccountId"
+          - Sid: Allow_Publish_Alarms
+            Action:
+              - SNS:Publish
+            Effect: Allow
+            Principal:
+              Service: !Sub "cloudwatch.amazonaws.com"
+            Resource: !Ref SNSTopicsourvesDLQAlert
+      Topics:
+        - !Ref SNSTopicsourvesDLQAlert
+  sourvesValidationQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "SQS:SendMessage"
+            Effect: "Allow"
+            Principal:
+              AWS:
+                - "*"
+            Resource: !GetAtt sourvesValidationQueue.Arn
+          - Action:
+              - "SQS:SendMessage"
+            Effect: "Allow"
+            Principal:
+              AWS:
+                - "*"
+            Resource: !Ref SNSTopicsourvesValidation
+      Queues:
+        - !Ref sourvesValidationQueue
+  sourvesValidationQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Delete
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-validation-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt sourvesValidationDeadLetterQueue.Arn
+        maxReceiveCount: 5
+      VisibilityTimeout: 30 # 30 seconds
+  sourvesValidationDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-source-collection-validation-dead-letter-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 30 # 30 seconds
+  sourvesValidationDeadLetterQueueMessageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationDeadLetterQueueMessageAlarm"
+      AlarmDescription: A message was sent on the source collection validation error queue
+      AlarmActions:
+        - !Ref SNSTopicsourvesDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Threshold: 0
+      TreatMissingData: missing
+      Metrics:
+        - Id: m1
+          Label: VisibleAverage
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: QueueName
+                  Value: !GetAtt sourvesValidationDeadLetterQueue.QueueName
+              MetricName: ApproximateNumberOfMessagesVisible
+              Namespace: AWS/SQS
+            Period: "60"
+            Stat: Average
+          ReturnData: false
+        - Id: r1
+          Expression: RATE(m1)
+          ReturnData: true
+  sourvesValidationDuratonAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationDurationAlarm"
+      AlarmDescription: A source collection validation message exceeded 12 hours in duration
+      AlarmActions:
+        - !Ref SNSTopicsourvesDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 43200 # 12 hours
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt sourvesValidationQueue.QueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+
+  ############################## Destination Publishing Resources ##############################
+  DestinationValidationQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          Action:
+            - SQS:AddPermission
+            - SQS:DeleteMessage
+            - SQS:GetQueueAttributes
+            - SQS:ReceiveMessage
+            - SQS:RemovePermission
+            - SQS:SendMessage
+            - SQS:SetQueueAttributes
+          Effect: "Allow"
+          Principal:
+            AWS: "*"
+          Resource: !GetAtt DestinationValidationQueue.Arn
+          Condition:
+            ArnLike:
+              AWS:SourceArn:
+                Fn::ImportValue: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationBucketArn"
+      Queues:
+        - !Ref DestinationValidationQueue
+  DestinationValidationQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Delete
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-validation-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DestinationValidationDeadLetterQueue.Arn
+        maxReceiveCount: 2
+      VisibilityTimeout: 30 # 30 seconds
+  DestinationValidationDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-validation-dead-letter-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 30 # 30 seconds
+  DestinationTaggingQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          Action:
+            - SQS:AddPermission
+            - SQS:DeleteMessage
+            - SQS:GetQueueAttributes
+            - SQS:ReceiveMessage
+            - SQS:RemovePermission
+            - SQS:SendMessage
+            - SQS:SetQueueAttributes
+          Effect: "Allow"
+          Principal:
+            AWS: "*"
+          Resource: !GetAtt DestinationTaggingQueue.Arn
+          Condition:
+            ArnLike:
+              AWS:SourceArn:
+                Fn::ImportValue: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationBucketArn"
+      Queues:
+        - !Ref DestinationTaggingQueue
+  DestinationTaggingQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Delete
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-tagging-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DestinationTaggingDeadLetterQueue.Arn
+        maxReceiveCount: 2
+      VisibilityTimeout: 30 # 30 seconds
+  DestinationTaggingDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-tagging-dead-letter-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 30 # 30 seconds
+  DestinationSubmissionQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          Action:
+            - SQS:AddPermission
+            - SQS:DeleteMessage
+            - SQS:GetQueueAttributes
+            - SQS:ReceiveMessage
+            - SQS:RemovePermission
+            - SQS:SendMessage
+            - SQS:SetQueueAttributes
+          Effect: "Allow"
+          Principal:
+            AWS: "*"
+          Resource: !GetAtt DestinationSubmissionQueue.Arn
+      Queues:
+        - !Ref DestinationSubmissionQueue
+  DestinationSubmissionQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Delete
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-submission-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DestinationSubmissionDeadLetterQueue.Arn
+        maxReceiveCount: 2
+      VisibilityTimeout: 30 # 30 seconds
+  DestinationSubmissionDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      KmsDataKeyReusePeriodSeconds: 86400 # 24 Hours
+      KmsMasterKeyId: !Ref SQSMessageKey
+      MaximumMessageSize: 262144 # 256KB
+      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-submission-dead-letter-queue"
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 30 # 30 seconds
+  SNSTopicDestinationDLQAlert:
+    Type: AWS::SNS::Topic
+    DeletionPolicy: Delete
+    Properties:
+      DisplayName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-dlq-alert-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmailDestination
+          Protocol: email
+      TopicName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-destination-publishing-dlq-alert-topic"
+  SNSTopicPolicyDestinationDLQAlert:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicPolicyDestinationDLQAlert
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Allow_Access
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Resource: !Ref SNSTopicDestinationDLQAlert
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref "AWS::AccountId"
+          - Sid: Allow_Publish_Alarms
+            Action:
+              - SNS:Publish
+            Effect: Allow
+            Principal:
+              Service: !Sub "cloudwatch.amazonaws.com"
+            Resource: !Ref SNSTopicDestinationDLQAlert
+      Topics:
+        - !Ref SNSTopicDestinationDLQAlert
+  DestinationValidationDeadLetterQueueMessageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationValidationDeadLetterQueueMessageAlarm"
+      AlarmDescription: A message was sent on the destination publishing validation error queue
+      AlarmActions:
+        - !Ref SNSTopicDestinationDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Threshold: 0
+      TreatMissingData: missing
+      Metrics:
+        - Id: m1
+          Label: VisibleAverage
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: QueueName
+                  Value: !GetAtt DestinationValidationDeadLetterQueue.QueueName
+              MetricName: ApproximateNumberOfMessagesVisible
+              Namespace: AWS/SQS
+            Period: "60"
+            Stat: Average
+          ReturnData: false
+        - Id: r1
+          Expression: RATE(m1)
+          ReturnData: true
+  DestinationSubmissionDeadLetterQueueMessageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationSubmissionDeadLetterQueueMessageAlarm"
+      AlarmDescription: A message was sent on the destination publishing submission error queue
+      AlarmActions:
+        - !Ref SNSTopicDestinationDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Threshold: 0
+      TreatMissingData: missing
+      Metrics:
+        - Id: m1
+          Label: VisibleAverage
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: QueueName
+                  Value: !GetAtt DestinationSubmissionDeadLetterQueue.QueueName
+              MetricName: ApproximateNumberOfMessagesVisible
+              Namespace: AWS/SQS
+            Period: "60"
+            Stat: Average
+          ReturnData: false
+        - Id: r1
+          Expression: RATE(m1)
+          ReturnData: true
+  DestinationTaggingDeadLetterQueueMessageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationTaggingDeadLetterQueueMessageAlarm"
+      AlarmDescription: A message was sent on the destination publishing tagging error queue
+      AlarmActions:
+        - !Ref SNSTopicDestinationDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Threshold: 0
+      TreatMissingData: missing
+      Metrics:
+        - Id: m1
+          Label: VisibleAverage
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: QueueName
+                  Value: !GetAtt DestinationTaggingDeadLetterQueue.QueueName
+              MetricName: ApproximateNumberOfMessagesVisible
+              Namespace: AWS/SQS
+            Period: "60"
+            Stat: Average
+          ReturnData: false
+        - Id: r1
+          Expression: RATE(m1)
+          ReturnData: true
+  DestinationValidationDuratonAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DeletionPolicy: Delete
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationValidationDurationAlarm"
+      AlarmDescription: A destination publishing validation message exceeded 12 hours in duration
+      AlarmActions:
+        - !Ref SNSTopicDestinationDLQAlert
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 43200 # 12 hours
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt DestinationValidationQueue.QueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+Outputs:
+  ApplicationSecurityGroupId:
+    Description: The application security group id
+    Value: !Ref ApplicationSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-ApplicationSecurityGroupId"
+  DestinationValidationQueue:
+    Description: The destination publishing validation queue URL
+    Value: !Ref DestinationValidationQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationValidationQueueUrl"
+  DestinationValidationQueueArn:
+    Description: The destination publishing validation queue ARN
+    Value: !GetAtt DestinationValidationQueue.Arn
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationValidationQueueArn"
+  DestinationValidationDeadLetterQueue:
+    Description: The destination publishing validation error queue URL
+    Value: !Ref DestinationValidationDeadLetterQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationValidationDeadLetterQueueUrl"
+  DestinationTaggingQueue:
+    Description: The destination publishing tagging queue URL
+    Value: !Ref DestinationTaggingQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationTaggingQueueUrl"
+  DestinationTaggingQueueArn:
+    Description: The destination publishing tagging queue ARN
+    Value: !GetAtt DestinationTaggingQueue.Arn
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationTaggingQueueArn"
+  DestinationTaggingDeadLetterQueue:
+    Description: The destination publishing tagging error queue URL
+    Value: !Ref DestinationTaggingDeadLetterQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationTaggingDeadLetterQueueUrl"
+  DestinationSubmissionQueue:
+    Description: The destination publishing submission queue URL
+    Value: !Ref DestinationSubmissionQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationSubmissionQueueUrl"
+  DestinationSubmissionQueueArn:
+    Description: The destination publishing submission queue ARN
+    Value: !GetAtt DestinationSubmissionQueue.Arn
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationSubmissionQueueArn"
+  DestinationSubmissionDeadLetterQueue:
+    Description: The destination publishing submission error queue URL
+    Value: !Ref DestinationSubmissionDeadLetterQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-DestinationSubmissionDeadLetterQueueUrl"
+  sourvesValidationQueue:
+    Description: The source collection validation queue URL
+    Value: !Ref sourvesValidationQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationQueueUrl"
+  sourvesValidationQueueArn:
+    Description: The source collection validation queue ARN
+    Value: !GetAtt sourvesValidationQueue.Arn
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationQueueArn"
+  sourvesValidationDeadLetterQueue:
+    Description: The source collection validation error queue URL
+    Value: !Ref sourvesValidationDeadLetterQueue
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationDeadLetterQueueUrl"
+  SNSTopicsourvesValidation:
+    Description: The source collection validation SNS topic ARN
+    Value: !Ref SNSTopicsourvesValidation
+    Export:
+      Name: !Sub "${ProjectName}-${ProjectEnvironment}-${ReleaseGroup}-sourvesValidationTopicArn"

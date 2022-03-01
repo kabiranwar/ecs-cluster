@@ -43,7 +43,11 @@
       "ecsTaskExecutionRoleArn": "arn:aws:iam::321325872726:role/ecsTaskExecutionRole",
       "SGID": "sg-074de470add30d74a",
       "ScoutAppImage":"arn:aws:ecr:us-east-1:321325872726:repository/ecr-simplehttp",
-      "ScoutDbImage":"arn:aws:ecr:us-east-1:321325872726:repository/ecr-metalapp"
+      "ScoutDbImage":"arn:aws:ecr:us-east-1:321325872726:repository/ecr-metalapp",
+      "Principals": "arn:aws:iam::321325872726:root",
+      "administrationPrincipals": "arn:aws:iam::321325872726:root/PDEVELOPER",
+      "conditions": "sqs.us-east-1.amazonaws.com",
+      "CallerAccount": "321325872726"
       
     }
   }
