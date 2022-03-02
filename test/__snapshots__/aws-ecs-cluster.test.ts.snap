@@ -27,13 +27,7 @@ Object {
         ],
       },
     },
-    "albsg": Object {
-      "Export": Object {
-        "Name": "albsg",
-      },
-      "Value": "sg-074de470add30d74a",
-    },
-    "devecsserviceALB": Object {
+    "cfnoutputALBdevecsserviceALB85354A76": Object {
       "Export": Object {
         "Name": "Scout-ecs-dev-alb",
       },
@@ -52,18 +46,24 @@ Object {
         ],
       },
     },
-    "ecssg": Object {
+    "cfnoutputalbsg8CBF59C6": Object {
+      "Export": Object {
+        "Name": "albsg",
+      },
+      "Value": "sg-074de470add30d74a",
+    },
+    "cfnoutputecssg3806F0AA": Object {
       "Export": Object {
         "Name": "ecssg",
       },
       "Value": Object {
         "Fn::GetAtt": Array [
-          "scoutappSG0ECC9C3C",
+          "scoutappSG154C1321",
           "GroupId",
         ],
       },
     },
-    "importingalb": Object {
+    "cfnoutputimportingalb8A5610FE": Object {
       "Export": Object {
         "Name": "albarn",
       },
@@ -168,7 +168,7 @@ Object {
             "SecurityGroups": Array [
               Object {
                 "Fn::GetAtt": Array [
-                  "scoutappSG0ECC9C3C",
+                  "scoutappSG154C1321",
                   "GroupId",
                 ],
               },
@@ -254,12 +254,12 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "ServiceLBSecurityGrouptoECSClusterTestStackscoutappSG896577E0800079737D6E": Object {
+    "ServiceLBSecurityGrouptoECSClusterTestStackscoutappSGFE16C3B680000EDFC4A8": Object {
       "Properties": Object {
         "Description": "Load balancer to target",
         "DestinationSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -526,22 +526,22 @@ Object {
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
-    "scoutappSG0ECC9C3C": Object {
+    "scoutappSG154C1321": Object {
       "Properties": Object {
-        "GroupDescription": "Default/ECSClusterTestStack/scoutapp-SG",
+        "GroupDescription": "Default/ECSClusterTestStack/scoutapp-SG/scoutapp-SG",
         "GroupName": "scout-app-sg",
         "VpcId": "vpc-12345",
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "scoutappSGfrom108481532543230000B7D8F10": Object {
+    "scoutappSGfrom1084815325432300075918113": Object {
       "Properties": Object {
         "CidrIp": "108.48.153.254/32",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -550,14 +550,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom10848153254328020FCC70D": Object {
+    "scoutappSGfrom1084815325432801ABFADE5": Object {
       "Properties": Object {
         "CidrIp": "108.48.153.254/32",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -566,14 +566,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom12822940243000EFCCC71A": Object {
+    "scoutappSGfrom128229402430001DE6F79A": Object {
       "Properties": Object {
         "CidrIp": "128.229.4.0/24",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -582,14 +582,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom128229402480DADCF75F": Object {
+    "scoutappSGfrom1282294024806C7F4938": Object {
       "Properties": Object {
         "CidrIp": "128.229.4.0/24",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -598,14 +598,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom1282296714323000B5A6A6AC": Object {
+    "scoutappSGfrom1282296714323000EC3A1058": Object {
       "Properties": Object {
         "CidrIp": "128.229.67.14/32",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -614,14 +614,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom12822967143280B7B15C3C": Object {
+    "scoutappSGfrom1282296714328000BA415C": Object {
       "Properties": Object {
         "CidrIp": "128.229.67.14/32",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -630,14 +630,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom1362261802430000690A1F7": Object {
+    "scoutappSGfrom136226180243000DD6A5D92": Object {
       "Properties": Object {
         "CidrIp": "136.226.18.0/24",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -646,14 +646,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom13622618024801CB3C981": Object {
+    "scoutappSGfrom136226180248062ABBFCD": Object {
       "Properties": Object {
         "CidrIp": "136.226.18.0/24",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -662,14 +662,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom1588040243000A402A09F": Object {
+    "scoutappSGfrom158804024300043358F3A": Object {
       "Properties": Object {
         "CidrIp": "158.80.4.0/24",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -678,14 +678,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom15880402480CB4F4883": Object {
+    "scoutappSGfrom15880402480ADB20027": Object {
       "Properties": Object {
         "CidrIp": "158.80.4.0/24",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -694,14 +694,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom17231001630002AEE804C": Object {
+    "scoutappSGfrom172310016300026EE24B0": Object {
       "Properties": Object {
         "CidrIp": "172.31.0.0/16",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -710,14 +710,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom172310016802C0F920A": Object {
+    "scoutappSGfrom172310016808394A816": Object {
       "Properties": Object {
         "CidrIp": "172.31.0.0/16",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -726,14 +726,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom7116318218323000E16AB3AF": Object {
+    "scoutappSGfrom7116318218323000221154CF": Object {
       "Properties": Object {
         "CidrIp": "71.163.18.218/32",
         "Description": "Allow http traffic",
         "FromPort": 3000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -742,14 +742,14 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfrom71163182183280B2FFF619": Object {
+    "scoutappSGfrom71163182183280932EAD11": Object {
       "Properties": Object {
         "CidrIp": "71.163.18.218/32",
         "Description": "Allow http traffic",
         "FromPort": 80,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -758,13 +758,13 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfromECSClusterTestStackSGA0EE9013ALLPORTS794CA078": Object {
+    "scoutappSGfromECSClusterTestStackSGA0EE9013ALLPORTS203B4C0C": Object {
       "Properties": Object {
         "Description": "from ECSClusterTestStackSGA0EE9013:ALL PORTS",
         "FromPort": 0,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -774,13 +774,13 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGfromECSClusterTestStackServiceLBSecurityGroup2C71137F8000EA1F677B": Object {
+    "scoutappSGfromECSClusterTestStackServiceLBSecurityGroup2C71137F8000AED5C9EF": Object {
       "Properties": Object {
         "Description": "Load balancer to target",
         "FromPort": 8000,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },
@@ -795,13 +795,13 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "scoutappSGto00000ALLTRAFFICB84F64DF": Object {
+    "scoutappSGto00000ALLTRAFFICD53597B5": Object {
       "Properties": Object {
         "CidrIp": "0.0.0.0/0",
         "Description": "Allow all outbound traffic by default",
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "scoutappSG0ECC9C3C",
+            "scoutappSG154C1321",
             "GroupId",
           ],
         },

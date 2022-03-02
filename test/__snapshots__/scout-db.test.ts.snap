@@ -73,9 +73,9 @@ Object {
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain",
     },
-    "ScoutDBSGBackEnd3EB41EAB": Object {
+    "ScoutDBSGScoutDBSGBackEnd7B25D2D9": Object {
       "Properties": Object {
-        "GroupDescription": "Default/ScoutDBTestStack/ScoutDB-SG-BackEnd",
+        "GroupDescription": "Default/ScoutDBTestStack/ScoutDB-SG/ScoutDB-SG-BackEnd",
         "GroupName": "scout-prod-db-sg",
         "SecurityGroupEgress": Array [
           Object {
@@ -100,13 +100,6 @@ Object {
             "ToPort": 5432,
           },
           Object {
-            "CidrIp": "128.229.67.14/32",
-            "Description": "Allow https traffic",
-            "FromPort": 5432,
-            "IpProtocol": "tcp",
-            "ToPort": 5432,
-          },
-          Object {
             "CidrIp": "136.226.18.0/24",
             "Description": "Allow https traffic",
             "FromPort": 5432,
@@ -125,13 +118,13 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "ScoutDBSGBackEndfromScoutDBTestStackImportedECSSG61E262F95432B8C62E47": Object {
+    "ScoutDBSGScoutDBSGBackEndfromScoutDBTestStackImportedECSSG61E262F95432692FB39A": Object {
       "Properties": Object {
         "Description": "from ScoutDBTestStackImportedECSSG61E262F9:5432",
         "FromPort": 5432,
         "GroupId": Object {
           "Fn::GetAtt": Array [
-            "ScoutDBSGBackEnd3EB41EAB",
+            "ScoutDBSGScoutDBSGBackEnd7B25D2D9",
             "GroupId",
           ],
         },
