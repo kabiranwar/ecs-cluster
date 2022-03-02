@@ -47,8 +47,9 @@
       "Principals": "arn:aws:iam::321325872726:root",
       "administrationPrincipals": "arn:aws:iam::321325872726:root/PDEVELOPER",
       "conditions": "sqs.us-east-1.amazonaws.com",
-      "CallerAccount": "321325872726"
-      
+      "CallerAccount": "321325872726",
+      "ReleaseGroup": "ecs-service",
+      "NotificationEmailsources": "ecs-cluster"
     }
   }
 }

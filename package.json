@@ -40,6 +40,10 @@
     "@aws-cdk/aws-config": "1.116.0",
     "@aws-cdk/aws-codebuild": "1.116.0",
     "@aws-cdk/aws-codepipeline": "1.116.0",
-    "@aws-cdk/aws-codepipeline-actions": "1.116.0"
+    "@aws-cdk/aws-codepipeline-actions": "1.116.0",
+    "@aws-cdk/aws-sqs": "1.116.0",
+    "@aws-cdk/aws-sns": "1.116.0",
+    "@aws-cdk/aws-cloudwatch": "1.116.0",
+    "@aws-cdk/aws-cloudwatch-actions": "1.116.0"
   }
 }

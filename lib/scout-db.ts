@@ -8,6 +8,8 @@ import * as parameters from "../cdk.json";
 import { LogGroup, LogStream } from "@aws-cdk/aws-logs";
 import * as ssm from '@aws-cdk/aws-ssm';
 import * as ecr from "@aws-cdk/aws-ecr"
+import { BaseSecurityGroup } from './constructs/BaseSecurityGroup';
+import { Constants } from './constants/constants';
 
 export class ScoutDBStack extends cdk.Stack {
 
@@ -18,37 +20,70 @@ export class ScoutDBStack extends cdk.Stack {
       isDefault: true,
     });
 
-    const postgrestdbSG = new ec2.SecurityGroup(this, "ScoutDB-SG-BackEnd", {
-      vpc: defaultVpc,
+    // const postgrestdbSG = new ec2.SecurityGroup(this, "ScoutDB-SG-BackEnd", {
+    //   vpc: defaultVpc,
+    //   allowAllOutbound: true,
+    //   securityGroupName: parameters.context.config.ProjectName + '-' + parameters.context.config.ProjectEnvironment + '-' + 'db-sg',
+    // });
+
+    const postgrestdbSG = new BaseSecurityGroup(this, "ScoutDB-SG", {
+      vpc:defaultVpc,
+      sgPropsName:"ScoutDB-SG-BackEnd",
+      sgName: parameters.context.config.ProjectName + '-' + parameters.context.config.ProjectEnvironment + '-' + 'db-sg',
       allowAllOutbound: true,
-      securityGroupName: parameters.context.config.ProjectName + '-' + parameters.context.config.ProjectEnvironment + '-' + 'db-sg',
+      sgPortInfo: [
+        {
+          sgPort : Constants.securityGrouptcpPort,
+          ipv4Port: '128.229.4.0/24',
+          tcpPort:5432,
+          description:Constants.securityGroupAllowHttpsDesc
+        },
+        {
+          sgPort : Constants.securityGrouptcpPort,
+          ipv4Port: '108.48.153.254/32',
+          tcpPort:5432,
+          description:Constants.securityGroupAllowHttpsDesc
+        },
+        {
+          sgPort : Constants.securityGrouptcpPort,
+          ipv4Port: '136.226.18.0/24',
+          tcpPort:5432,
+          description:Constants.securityGroupAllowHttpsDesc
+        },
+        {
+          sgPort : Constants.securityGrouptcpPort,
+          ipv4Port: '156.80.4.0/24',
+          tcpPort:5432,
+          description:Constants.securityGroupAllowHttpsDesc
+        }
+      ]
     });
 
-    postgrestdbSG.addIngressRule(
-      ec2.Peer.ipv4('128.229.4.0/24'),
-      ec2.Port.tcp(5432),
-      "Allow https traffic"
-    );
-    postgrestdbSG.addIngressRule(
-      ec2.Peer.ipv4('108.48.153.254/32'),
-      ec2.Port.tcp(5432),
-      "Allow https traffic"
-    );
-    postgrestdbSG.addIngressRule(
-      ec2.Peer.ipv4('128.229.67.14/32'),
-      ec2.Port.tcp(5432),
-      "Allow https traffic"
-    );
-    postgrestdbSG.addIngressRule(
-      ec2.Peer.ipv4('136.226.18.0/24'),
-      ec2.Port.tcp(5432),
-      "Allow https traffic"
-    );
-    postgrestdbSG.addIngressRule(
-      ec2.Peer.ipv4('156.80.4.0/24'),
-      ec2.Port.tcp(5432),
-      "Allow https traffic"
-    );
+    // postgrestdbSG.addIngressRule(
+    //   ec2.Peer.ipv4('128.229.4.0/24'),
+    //   ec2.Port.tcp(5432),
+    //   "Allow https traffic"
+    // );
+    // postgrestdbSG.addIngressRule(
+    //   ec2.Peer.ipv4('108.48.153.254/32'),
+    //   ec2.Port.tcp(5432),
+    //   "Allow https traffic"
+    // );
+    // postgrestdbSG.addIngressRule(
+    //   ec2.Peer.ipv4('128.229.67.14/32'),
+    //   ec2.Port.tcp(5432),
+    //   "Allow https traffic"
+    // );
+    // postgrestdbSG.addIngressRule(
+    //   ec2.Peer.ipv4('136.226.18.0/24'),
+    //   ec2.Port.tcp(5432),
+    //   "Allow https traffic"
+    // );
+    // postgrestdbSG.addIngressRule(
+    //   ec2.Peer.ipv4('156.80.4.0/24'),
+    //   ec2.Port.tcp(5432),
+    //   "Allow https traffic"
+    // );
     const importedSG = cdk.Fn.importValue("ecssg");
     //Create an ECS Cluster for back end
     const scoutdb_cluster = ecs.Cluster.fromClusterAttributes(this, 'ScoutDB-Imported-Cluster', {
@@ -65,7 +100,7 @@ export class ScoutDBStack extends cdk.Stack {
 
     //Creation of Execution role for Front end TD:    
     const ecssg = ec2.SecurityGroup.fromSecurityGroupId(this, 'Imported ECS SG', importedSG)
-    postgrestdbSG.connections.allowFrom(
+    postgrestdbSG.sg.connections.allowFrom(
       ecssg,
       ec2.Port.tcp(5432),
     );
