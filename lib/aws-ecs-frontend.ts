@@ -4,7 +4,6 @@ import * as ecsPatterns from '@aws-cdk/aws-ecs-patterns'
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as iam from '@aws-cdk/aws-iam';
-import * as ssl_cert from '@aws-cdk/aws-certificatemanager';
 import * as parameters from "../cdk.json"
 import * as ssm from '@aws-cdk/aws-ssm';
 import { LogGroup, LogStream } from "@aws-cdk/aws-logs";
@@ -276,99 +275,99 @@ export class ScoutFrontEnd extends cdk.Stack {
     // });
 
     const ecssg = new BaseSecurityGroup(this, "scoutapp-SG", {
-      vpc:defaultVpc,
-      sgPropsName:"scoutapp-SG",
+      vpc: defaultVpc,
+      sgPropsName: "scoutapp-SG",
       sgName: 'scout-app-sg',
       allowAllOutbound: true,
       disableInlineRules: true,
       sgPortInfo: [
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '71.163.18.218/32',
-          tcpPort:80,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 80,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '71.163.18.218/32',
-          tcpPort:3000,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 3000,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '128.229.4.0/24',
-          tcpPort:80,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 80,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '128.229.4.0/24',
-          tcpPort:3000,
+          tcpPort: 3000,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '108.48.153.254/32',
-          tcpPort:80,
+          tcpPort: 80,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '108.48.153.254/32',
-          tcpPort:3000,
+          tcpPort: 3000,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '158.80.4.0/24',
-          tcpPort:80,
+          tcpPort: 80,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '158.80.4.0/24',
-          tcpPort:3000,
+          tcpPort: 3000,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '128.229.67.14/32',
-          tcpPort:80,
+          tcpPort: 80,
           description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '128.229.67.14/32',
-          tcpPort:3000,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 3000,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '136.226.18.0/24',
-          tcpPort:80,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 80,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '136.226.18.0/24',
-          tcpPort:3000,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 3000,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '172.31.0.0/16',
-          tcpPort:80,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 80,
+          description: Constants.securityGroupAllowDesc
         },
         {
-          sgPort : Constants.securityGrouptcpPort,
+          sgPort: Constants.securityGrouptcpPort,
           ipv4Port: '172.31.0.0/16',
-          tcpPort:3000,
-          description:Constants.securityGroupAllowDesc
+          tcpPort: 3000,
+          description: Constants.securityGroupAllowDesc
         },
       ]
     });
-    
+
     // ecssg.addIngressRule(
     //   ec2.Peer.ipv4('71.163.18.218/32'),
     //   ec2.Port.tcp(80),
@@ -440,13 +439,13 @@ export class ScoutFrontEnd extends cdk.Stack {
     //   "Allow http traffic"
     // );
 
-    
+
     // ecssg.connections.allowFrom(
     //   albsg,
     //   ec2.Port.allTcp()
     // )
 
-    ecssg. sg.connections.allowFrom(
+    ecssg.sg.connections.allowFrom(
       albsg,
       ec2.Port.allTcp()
     )
@@ -520,28 +519,28 @@ export class ScoutFrontEnd extends cdk.Stack {
     //   exportName: 'albarn'
     // })
 
-    new BaseCfnOutput(this,"cfnoutputALB",{
-      cfnOutputPropsName:"dev-ecsservice-ALB",
+    new BaseCfnOutput(this, "cfnoutputALB", {
+      cfnOutputPropsName: "dev-ecsservice-ALB",
       cfnOutputValue: 'http://' + alb.loadBalancerDnsName,
-      cfnOutputExportName:'Scout-ecs-dev-alb'
+      cfnOutputExportName: 'Scout-ecs-dev-alb'
     });
 
-    new BaseCfnOutput(this,"cfnoutputalbsg",{
-      cfnOutputPropsName:"albsg",
+    new BaseCfnOutput(this, "cfnoutputalbsg", {
+      cfnOutputPropsName: "albsg",
       cfnOutputValue: albsg.securityGroupId,
-      cfnOutputExportName:'albsg'
+      cfnOutputExportName: 'albsg'
     });
 
-    new BaseCfnOutput(this,"cfnoutputecssg",{
-      cfnOutputPropsName:"ecssg",
-      cfnOutputValue:  ecssg.sg.securityGroupId,
-      cfnOutputExportName:'ecssg'
+    new BaseCfnOutput(this, "cfnoutputecssg", {
+      cfnOutputPropsName: "ecssg",
+      cfnOutputValue: ecssg.sg.securityGroupId,
+      cfnOutputExportName: 'ecssg'
     });
 
-    new BaseCfnOutput(this,"cfnoutputimporting-alb",{
-      cfnOutputPropsName:"importing-alb",
+    new BaseCfnOutput(this, "cfnoutputimporting-alb", {
+      cfnOutputPropsName: "importing-alb",
       cfnOutputValue: alb.loadBalancerArn,
-      cfnOutputExportName:'albarn'
+      cfnOutputExportName: 'albarn'
     });
   }
 }
